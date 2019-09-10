@@ -11,3 +11,4 @@ movie <- read.csv("movie_metadata.csv",sep = ",")
 movie <- na.omit(movie)
 str(movie)
 
+new_movies <-filter(movie, title_year <=2000)
