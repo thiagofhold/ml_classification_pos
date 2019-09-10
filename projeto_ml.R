@@ -3,3 +3,10 @@
 ## Data: sep/2019
 ## FMU 
 
+#######################################################################
+
+setwd("~/Desktop/projeto_fred/ml_classification_pos")
+movie <- read.csv("movie_metadata.csv",sep = ",")
+
+movie <- na.omit(movie)
+str(movie)
