@@ -10,3 +10,4 @@ movie <- read.csv("movie_metadata.csv",sep = ",")
 
 movie <- na.omit(movie)
 str(movie)
+
