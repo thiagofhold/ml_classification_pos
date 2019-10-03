@@ -2,8 +2,16 @@
 ##setting work directory
 setwd("~/Desktop/projeto_fred_fmu/ml_classification_pos/forest_firing/bases")
 
+######################################################################################
+
+#Installing packages 
 install.packages("ggplot2")
 install.packages("lattice")
+install.packages('caret', dependencies = TRUE)
+library(caret)
+
+
+######################################################################################
 
 ##importando dataset e atribuindo numa variavel
 amazon_f <- read.csv("fires_trt.csv",sep = ",")
@@ -14,13 +22,33 @@ summary(amazon_f)
 head(amazon_f)
 colnames(amazon_f)
 
+
+# converting the columns to factors (transforming the dataset)
+amazon_f$year <- as.factor(amazon_f$year)
+amazon_f$state <- as.factor(amazon_f$state)
+amazon_f$trt_region <- as.factor(amazon_f$trt_region)
+amazon_f$trt_month_year <- as.factor(amazon_f$trt_month_year)
+amazon_f$trt_number <- as.factor(amazon_f$trt_number)
+amazon_f$trt_estacoes <- as.factor(amazon_f$trt_estacoes)
+
+
+str(amazon_f)
+summary(amazon_f)
+
+
+######################################################################################
 # Data Partition
+
 set.seed(123)
 # especifica que queremos 2 grupos utilisando a funcao sample "c" specifies the way we want the 2 groups to be devided.
 ind <- sample(2, nrow(amazon_f), replace = TRUE, prob = c(0.7, 0.3))
 train <- amazon_f[ind==1,]
 test <- amazon_f[ind==2,]
 
+str(test)
+
+
+######################################################################################
 #modelos de classificacao
 
 #Naive Bayes 
@@ -28,35 +56,46 @@ library(e1071)
 fit_nb <- naiveBayes(trt_number ~ ., data = train)
 
 # K-Nearest Neighbors
-
 library(caret)
-# fit_knn1 <- knn3(trt_number ~ ., data = train, k = 100)
-
 fit_knn10 <- knn3(trt_number ~ ., data = train, k = 10)
+fit_knn100 <- knn3(trt_number ~ ., data = train, k = 100)
+
+#lda
+library(MASS)
+fit_lda <- lda(trt_number ~ ., data = train)
 
 
-library(randomForest)
-fit_rf <- randomForest(trt_number ~ ., data = train)
 
-
+######################################################################################
 # Predictions 
+
 
 # NaiveBayes
 pred_nb <- predict(fit_nb , test, type = 'raw')[,2]
 
 # KNN
-# pred_knn1 <- predict(fit_knn1 , test, type = 'prob')
 pred_knn10 <- predict(fit_knn10 , test, type = 'prob')[,2]
+pred_knn100 <- predict(fit_knn100 , test, type = 'prob')[,2]
 
-# Random forest
-pred_rf <- predict(fit_rf , test, type = 'prob')[,2]
+#lda
+pred_lda <- predict(fit_lda , test, type = 'response')$posterior[,2]
 
 
-# confusion Matrix
-caret::confusionMatrix(pred_nb, test$trt_number, positive = '1')
 
+######################################################################################
+#plotando ROC.
 
 library(ROCit)
-# plot(rocit(score=pred_knn1,class=test$trt_number))
 plot(rocit(score=pred_knn10,class=test$trt_number))
+plot(rocit(score=pred_knn100,class=test$trt_number))
 plot(rocit(score=pred_nb,class=test$trt_number))
+plot(rocit(score=pred_lda,class=test$trt_number))
+
+
+
+######################################################################################
+# confusion Matrix
+
+# confusionMatrix(factor(pred_nb, levels = 1:1918), 
+#                 factor(test$trt_number, levels = 1:1918)
+# )
