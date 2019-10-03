@@ -1,41 +1,62 @@
-## Projeto Clasificação 
-## Authores: laris Komando, Fabiano Cruz, Thiago Moreira
-## Data: sep/2019
-## FMU 
-
-#######################################################################
-install.packages("tidyverse")
-installed.packages("dplyr")
-library(tidyverse)
-library(dplyr)
 
 ##setting work directory
-setwd("~/Desktop/projeto_fred/ml_classification_pos")
+setwd("~/Desktop/projeto_fred_fmu/ml_classification_pos/forest_firing/bases")
+
+install.packages("ggplot2")
+install.packages("lattice")
 
 ##importando dataset e atribuindo numa variavel
-new_movies <- read.csv("movie_metadata.csv",sep = ",")
+amazon_f <- read.csv("fires_trt.csv",sep = ",")
 
-##Deletando os campos de NA (vazios)
-new_movies <- na.omit(new_movies)
-str(new_movies)
+##checking the structure of the dataset
+str(amazon_f)
+summary(amazon_f)
+head(amazon_f)
+colnames(amazon_f)
 
-##duration, genres, plot_keywords, language, country, budget
-colnames(new_movies)
- 
-str(new_movies)
+# Data Partition
+set.seed(123)
+# especifica que queremos 2 grupos utilisando a funcao sample "c" specifies the way we want the 2 groups to be devided.
+ind <- sample(2, nrow(amazon_f), replace = TRUE, prob = c(0.7, 0.3))
+train <- amazon_f[ind==1,]
+test <- amazon_f[ind==2,]
 
-##Transformando as colunas de duração e budget em fator
-new_movies$duration <- as.factor(new_movies$duration)
-new_movies$budget <- as.factor(new_movies$budget)
+#modelos de classificacao
 
-str(new_movies)
+#Naive Bayes 
+library(e1071)
+fit_nb <- naiveBayes(trt_number ~ ., data = train)
 
-new_movies$movie_facebook_likes
-new_movies$budget
+# K-Nearest Neighbors
 
-colnames(new_movies)
-##Colocando a variavel resposta na primeira posicao (coluna)
-new_movies <- new_movies %>%
-  select(imdb_score, everything())
+library(caret)
+# fit_knn1 <- knn3(trt_number ~ ., data = train, k = 100)
 
-colnames(new_movies)
+fit_knn10 <- knn3(trt_number ~ ., data = train, k = 10)
+
+
+library(randomForest)
+fit_rf <- randomForest(trt_number ~ ., data = train)
+
+
+# Predictions 
+
+# NaiveBayes
+pred_nb <- predict(fit_nb , test, type = 'raw')[,2]
+
+# KNN
+# pred_knn1 <- predict(fit_knn1 , test, type = 'prob')
+pred_knn10 <- predict(fit_knn10 , test, type = 'prob')[,2]
+
+# Random forest
+pred_rf <- predict(fit_rf , test, type = 'prob')[,2]
+
+
+# confusion Matrix
+caret::confusionMatrix(pred_nb, test$trt_number, positive = '1')
+
+
+library(ROCit)
+# plot(rocit(score=pred_knn1,class=test$trt_number))
+plot(rocit(score=pred_knn10,class=test$trt_number))
+plot(rocit(score=pred_nb,class=test$trt_number))
