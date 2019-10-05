@@ -57,7 +57,7 @@ fit_nb <- naiveBayes(trt_number ~ ., data = train)
 
 # K-Nearest Neighbors
 library(caret)
-fit_knn10 <- knn3(trt_number ~ ., data = train, k = 10)
+fit_knn30 <- knn3(trt_number ~ ., data = train, k = 30)
 fit_knn100 <- knn3(trt_number ~ ., data = train, k = 100)
 
 #lda
@@ -83,7 +83,7 @@ fit_svm_sig <- svm(trt_number ~ ., data = train, kernel = "sigmoid", probability
 pred_nb <- predict(fit_nb , test, type = 'raw')[,2]
 
 # KNN
-pred_knn10 <- predict(fit_knn10 , test, type = 'prob')[,2]
+pred_knn30 <- predict(fit_knn30 , test, type = 'prob')[,2]
 pred_knn100 <- predict(fit_knn100 , test, type = 'prob')[,2]
 
 #lda
@@ -99,10 +99,17 @@ pred_svm_sig <- attr(predict(fit_svm_sig , test, type = 'response', probability 
 #plotando ROC.
 
 library(ROCit)
-plot(rocit(score=pred_knn10,class=test$trt_number))
-plot(rocit(score=pred_knn100,class=test$trt_number))
+# NaiveBayes
 plot(rocit(score=pred_nb,class=test$trt_number))
+
+# KNN
+plot(rocit(score=pred_knn30,class=test$trt_number))
+plot(rocit(score=pred_knn100,class=test$trt_number))
+
+#lda
 plot(rocit(score=pred_lda,class=test$trt_number))
+
+# SVM -- Support Vector Machines
 plot(rocit(score=pred_svm_linear,class=test$trt_number))
 plot(rocit(score=pred_svm_rbf,class=test$trt_number))
 plot(rocit(score=pred_svm_poly,class=test$trt_number))
