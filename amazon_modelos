@@ -64,6 +64,15 @@ fit_knn100 <- knn3(trt_number ~ ., data = train, k = 100)
 library(MASS)
 fit_lda <- lda(trt_number ~ ., data = train)
 
+# SVM
+library(e1071)
+fit_svm_linear <- svm(trt_number ~ ., data = train, kernel="linear", probability = TRUE)
+
+fit_svm_rbf <- svm(trt_number ~ ., data = train, kernel = "radial", probability = TRUE)
+
+fit_svm_poly <- svm(trt_number ~ ., data = train, kernel = "polynomial", probability = TRUE)
+
+fit_svm_sig <- svm(trt_number ~ ., data = train, kernel = "sigmoid", probability = TRUE)
 
 
 ######################################################################################
@@ -80,7 +89,11 @@ pred_knn100 <- predict(fit_knn100 , test, type = 'prob')[,2]
 #lda
 pred_lda <- predict(fit_lda , test, type = 'response')$posterior[,2]
 
-
+# SVM -- Support Vector Machines
+pred_svm_linear <- attr(predict(fit_svm_linear , test, type = 'prob', probability = TRUE), "probabilities")[,1]
+pred_svm_rbf <- attr(predict(fit_svm_rbf , test, type = 'prob', probability = TRUE), "probabilities")[,1]
+pred_svm_poly <- attr(predict(fit_svm_poly , test, type = 'response', probability = TRUE), "probabilities")[,1]
+pred_svm_sig <- attr(predict(fit_svm_sig , test, type = 'response', probability = TRUE), "probabilities")[,1]
 
 ######################################################################################
 #plotando ROC.
@@ -90,12 +103,7 @@ plot(rocit(score=pred_knn10,class=test$trt_number))
 plot(rocit(score=pred_knn100,class=test$trt_number))
 plot(rocit(score=pred_nb,class=test$trt_number))
 plot(rocit(score=pred_lda,class=test$trt_number))
-
-
-
-######################################################################################
-# confusion Matrix
-
-# confusionMatrix(factor(pred_nb, levels = 1:1918), 
-#                 factor(test$trt_number, levels = 1:1918)
-# )
+plot(rocit(score=pred_svm_linear,class=test$trt_number))
+plot(rocit(score=pred_svm_rbf,class=test$trt_number))
+plot(rocit(score=pred_svm_poly,class=test$trt_number))
+plot(rocit(score=pred_svm_sig,class=test$trt_number))
